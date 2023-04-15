@@ -8,6 +8,34 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 TOKEN = os.environ['TG_TOKEN']
 updater = Updater(token=TOKEN, use_context=True)
 
+# Set up the logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize the Telegram bot
+bot = telegram.Bot(token='')
+
+# Initialize the GPT pipeline
+gpt = pipeline('text-generation', model='EleutherAI/gpt-neo-1.3B')
+
+# Define the chat handler
+def chat(update: Update, context: CallbackContext):
+    user_text = update.message.text
+    response = gpt(user_text, max_length=50, do_sample=True, temperature=0.7)
+    update.message.reply_text(response[0]['generated_text'])
+    
+# Define the main function
+def main():
+    updater = Updater(API_TOKEN, use_context=True)
+
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, chat))
+
+    updater.start_polling()
+    updater.idle()
+    
+    
 # QR kodunu oluşturma fonksiyonu
 def create_qr_code(text):
     # QR kodu oluştur
